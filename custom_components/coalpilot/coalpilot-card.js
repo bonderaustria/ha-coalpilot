@@ -88,6 +88,10 @@ class CoalPilotCard extends HTMLElement {
     return { entity: ent || "sensor.shisha_oven_state" };
   }
 
+  static getConfigElement() {
+    return document.createElement("coalpilot-card-editor");
+  }
+
   set hass(hass) {
     this._hass = hass;
     this._update();
@@ -431,6 +435,65 @@ class CoalPilotCard extends HTMLElement {
   }
 }
 
+/* ------------------------------------------------------------------ *
+ *  Visual config editor (entity picker with search + title + color)  *
+ * ------------------------------------------------------------------ */
+const EDITOR_LABELS = {
+  en: { entity: "Oven (CoalPilot state sensor)", title: "Title (optional)", accent_color: "Accent color (optional)" },
+  de: { entity: "Ofen (CoalPilot-Status-Sensor)", title: "Titel (optional)", accent_color: "Akzentfarbe (optional)" },
+};
+
+class CoalPilotCardEditor extends HTMLElement {
+  setConfig(config) {
+    this._config = { ...config };
+    this._render();
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    this._render();
+  }
+
+  _schema() {
+    return [
+      {
+        name: "entity",
+        required: true,
+        selector: { entity: { integration: "coalpilot", domain: "sensor" } },
+      },
+      { name: "title", selector: { text: {} } },
+      { name: "accent_color", selector: { text: { type: "color" } } },
+    ];
+  }
+
+  _render() {
+    if (!this._hass || !this._config) return;
+    const lang = (this._hass.language || "en").toLowerCase().split("-")[0];
+    const labels = EDITOR_LABELS[lang] || EDITOR_LABELS.en;
+
+    if (!this._form) {
+      this._form = document.createElement("ha-form");
+      this._form.computeLabel = (s) => labels[s.name] || s.name;
+      this._form.addEventListener("value-changed", (ev) => {
+        ev.stopPropagation();
+        this._config = ev.detail.value;
+        this.dispatchEvent(
+          new CustomEvent("config-changed", { detail: { config: this._config } })
+        );
+      });
+      this.appendChild(this._form);
+    }
+    this._form.hass = this._hass;
+    this._form.schema = this._schema();
+    this._form.data = this._config;
+    this._form.computeLabel = (s) => labels[s.name] || s.name;
+  }
+}
+
+if (!customElements.get("coalpilot-card-editor")) {
+  customElements.define("coalpilot-card-editor", CoalPilotCardEditor);
+}
+
 if (!customElements.get("coalpilot-card")) {
   customElements.define("coalpilot-card", CoalPilotCard);
 }
@@ -444,4 +507,4 @@ window.customCards.push({
   preview: false,
   documentationURL: "https://github.com/bonderaustria/ha-coalpilot",
 });
-console.info("%c COALPILOT-CARD %c  v0.1.5 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");
+console.info("%c COALPILOT-CARD %c  v0.1.6 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");
