@@ -22,6 +22,7 @@ const STR = {
     fb_title: "How was the coal?", fb_sub: "Adjusts the time for next time",
     fb_shorter: "Shorter", fb_perfect: "Perfect", fb_longer: "Longer",
     fb_saved: "saved",
+    discard: "Discard", discard_hint: "No coal made – don't count or learn",
     coal: "Coal", pcs: "pcs", no_coals: "No coal types – add one first",
     learned: "Learned time", last: "Last session", history: "History",
     v_perfect: "Perfect", v_shorter: "Shorter", v_longer: "Longer",
@@ -39,6 +40,7 @@ const STR = {
     fb_title: "Wie war die Kohle?", fb_sub: "Passt die Zeit fürs nächste Mal an",
     fb_shorter: "Kürzer", fb_perfect: "Perfekt", fb_longer: "Länger",
     fb_saved: "gemerkt",
+    discard: "Verwerfen", discard_hint: "Keine Kohle gemacht – nicht zählen/lernen",
     coal: "Kohle", pcs: "Stück", no_coals: "Keine Kohlearten – erst anlegen",
     learned: "Gelernte Zeit", last: "Letzte Session", history: "Verlauf",
     v_perfect: "Perfekt", v_shorter: "Kürzer", v_longer: "Länger",
@@ -242,7 +244,9 @@ class CoalPilotCard extends HTMLElement {
         .primary{width:100%;padding:16px;border-radius:16px;border:none;cursor:pointer;font-size:15px;font-weight:700;font-family:inherit;letter-spacing:-.01em;transition:transform .12s}
         .primary.go{background:linear-gradient(135deg,#ff8a3d,var(--cp-accent));color:#fff;box-shadow:0 10px 30px -8px rgba(255,87,34,.6)}
         .primary.stop{background:#0c0e12;color:#e7e9ec;border:1px solid #23272e}
-        .fb{animation:floatUp .35s ease}
+        .fb{position:relative;animation:floatUp .35s ease}
+        .discard{position:absolute;top:0;right:0;background:transparent;border:1px solid #23272e;border-radius:10px;color:#7c8290;font-size:11px;font-weight:600;padding:5px 9px;cursor:pointer;font-family:inherit;transition:all .15s}
+        .discard:hover{color:#e7e9ec;border-color:#3a3f47;background:#0c0e12}
         .fbh{text-align:center;font-size:14.5px;font-weight:600;margin-bottom:4px}
         .fbs{text-align:center;font-size:12px;color:#7c8290;margin-bottom:14px}
         .fbg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
@@ -292,6 +296,7 @@ class CoalPilotCard extends HTMLElement {
         </div>
         <button class="primary" id="cp-primary"></button>
         <div class="fb" id="cp-fb" style="display:none">
+          <button class="discard" id="cp-discard" title="${t.discard_hint}">✕ ${t.discard}</button>
           <div class="fbh">${t.fb_title}</div>
           <div class="fbs">${t.fb_sub}</div>
           <div class="fbg">
@@ -328,9 +333,10 @@ class CoalPilotCard extends HTMLElement {
     );
     $("cp-dec").addEventListener("click", () => this._stepFixed(-30));
     $("cp-inc").addEventListener("click", () => this._stepFixed(30));
-    $("cp-fb").querySelectorAll("button").forEach((b) =>
+    $("cp-fb").querySelectorAll("button[data-v]").forEach((b) =>
       b.addEventListener("click", () => this._feedback(b.dataset.v))
     );
+    $("cp-discard").addEventListener("click", () => this._call("stop", {}));
     $("cp-coal").addEventListener("change", (e) => {
       this._sel.coal = e.target.value;
       this._sel.count = null;
@@ -507,4 +513,4 @@ window.customCards.push({
   preview: false,
   documentationURL: "https://github.com/bonderaustria/ha-coalpilot",
 });
-console.info("%c COALPILOT-CARD %c  v0.1.8 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");
+console.info("%c COALPILOT-CARD %c  v0.1.9 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");

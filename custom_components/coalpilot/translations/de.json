@@ -52,7 +52,7 @@
       },
       "notify": {
         "title": "Benachrichtigung",
-        "description": "Wird gesendet, wenn der Timer abläuft. Platzhalter: {kohle}, {dauer}, {ofen}, {uhrzeit}.",
+        "description": "Wird gesendet, wenn der Timer abläuft. Platzhalter: '{kohle}', '{dauer}', '{ofen}', '{uhrzeit}'.",
         "data": {
           "notify_service": "Notify-Dienst (z. B. notify.mobile_app_handy)",
           "notify_title": "Titel",

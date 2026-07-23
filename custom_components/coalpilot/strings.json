@@ -52,7 +52,7 @@
       },
       "notify": {
         "title": "Notification",
-        "description": "Sent when the timer finishes. Placeholders: {kohle}/{coal}, {dauer}/{duration}, {ofen}/{oven}, {uhrzeit}/{time}.",
+        "description": "Sent when the timer finishes. Placeholders: '{kohle}'/'{coal}', '{dauer}'/'{duration}', '{ofen}'/'{oven}', '{uhrzeit}'/'{time}'.",
         "data": {
           "notify_service": "Notify service (e.g. notify.mobile_app_phone)",
           "notify_title": "Title",
