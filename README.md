@@ -124,6 +124,6 @@ A notification is sent **only when the timer runs out naturally** — never when
 
 ## License
 
-© 2026 Justin Tröbinger — All rights reserved. **Proprietary** ([LICENSE](LICENSE)).
+**[PolyForm Noncommercial License 1.0.0](LICENSE)** — © 2026 Justin Tröbinger.
 
-**Free to use for everyone** in your own Home Assistant (private or commercial), in unmodified form. You may **not** redistribute, modify, fork, mirror or create derivative works without the author's prior written permission.
+Free for any **noncommercial** use: you may use, modify, fork and share CoalPilot for personal, hobby, educational and other noncommercial purposes. **Commercial use — making money with it — is not permitted.** Keep the copyright notice when you share it.
