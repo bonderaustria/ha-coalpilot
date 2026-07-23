@@ -43,7 +43,7 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 CARD_FILENAME = "coalpilot-card.js"
 CARD_URL = f"/{DOMAIN}/{CARD_FILENAME}"
-CARD_VERSION = "0.1.4"  # bump to bust the browser cache when the card changes
+CARD_VERSION = "0.1.5"  # bump to bust the browser cache when the card changes
 
 
 async def _async_register_card(hass: HomeAssistant) -> None:

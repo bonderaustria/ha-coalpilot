@@ -440,6 +440,8 @@ window.customCards.push({
   type: "coalpilot-card",
   name: "CoalPilot Card",
   description: "Shisha oven timer that learns your perfect burn time.",
-  preview: true,
+  // No live preview in the picker: it would spin waiting for timer data.
+  preview: false,
+  documentationURL: "https://github.com/bonderaustria/ha-coalpilot",
 });
-console.info("%c COALPILOT-CARD %c  v0.1.4 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");
+console.info("%c COALPILOT-CARD %c  v0.1.5 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");
