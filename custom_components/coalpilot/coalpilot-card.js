@@ -23,6 +23,8 @@ const STR = {
     fb_shorter: "Shorter", fb_perfect: "Perfect", fb_longer: "Longer",
     fb_saved: "saved",
     discard: "Discard", discard_hint: "No coal made – don't count or learn",
+    reset_hint: "Reset learned time to the start value",
+    reset_confirm: "Reset learned time to the start value?",
     coal: "Coal", pcs: "pcs", no_coals: "No coal types – add one first",
     learned: "Learned time", last: "Last session", history: "History",
     v_perfect: "Perfect", v_shorter: "Shorter", v_longer: "Longer",
@@ -41,6 +43,8 @@ const STR = {
     fb_shorter: "Kürzer", fb_perfect: "Perfekt", fb_longer: "Länger",
     fb_saved: "gemerkt",
     discard: "Verwerfen", discard_hint: "Keine Kohle gemacht – nicht zählen/lernen",
+    reset_hint: "Gelernte Zeit auf Startwert zurücksetzen",
+    reset_confirm: "Gelernte Zeit auf den Startwert zurücksetzen?",
     coal: "Kohle", pcs: "Stück", no_coals: "Keine Kohlearten – erst anlegen",
     learned: "Gelernte Zeit", last: "Letzte Session", history: "Verlauf",
     v_perfect: "Perfekt", v_shorter: "Kürzer", v_longer: "Länger",
@@ -259,7 +263,9 @@ class CoalPilotCard extends HTMLElement {
         .cntrow .step{width:38px;height:38px;font-size:18px;border-radius:12px}
         .cntval{flex:1;text-align:center;font-family:'DM Mono',monospace;font-size:14px;color:#a7adb8}
         .stats{display:flex;gap:10px;margin-top:18px}
-        .stat{flex:1;background:#0c0e12;border:1px solid #23272e;border-radius:14px;padding:12px 13px}
+        .stat{position:relative;flex:1;background:#0c0e12;border:1px solid #23272e;border-radius:14px;padding:12px 13px}
+        .reset{position:absolute;top:8px;right:8px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;background:transparent;border:1px solid #23272e;border-radius:7px;color:#7c8290;font-size:13px;line-height:1;cursor:pointer;font-family:inherit;transition:all .15s}
+        .reset:hover{color:#ff9d5c;border-color:rgba(255,157,92,.4)}
         .stat .v1{font-family:'DM Mono',monospace;font-size:17px;color:#ff9d5c}
         .stat .v2{font-size:13px;color:#c7ccd4;font-weight:500;line-height:1.35}
         .hist{margin-top:16px}
@@ -311,7 +317,7 @@ class CoalPilotCard extends HTMLElement {
           <div class="cntrow"><button class="step" id="cp-cdec">−</button><div class="cntval" id="cp-cval"></div><button class="step" id="cp-cinc">+</button></div>
         </div>
         <div class="stats">
-          <div class="stat"><div class="lbl mt5">${t.learned}</div><div class="v1" id="cp-learned">--:--</div></div>
+          <div class="stat"><div class="lbl mt5">${t.learned}</div><div class="v1" id="cp-learned">--:--</div><button class="reset" id="cp-reset" title="${t.reset_hint}" style="display:none">↺</button></div>
           <div class="stat"><div class="lbl mt5">${t.last}</div><div class="v2" id="cp-last">—</div></div>
         </div>
         <div class="hist" id="cp-hist" style="display:none">
@@ -337,6 +343,11 @@ class CoalPilotCard extends HTMLElement {
       b.addEventListener("click", () => this._feedback(b.dataset.v))
     );
     $("cp-discard").addEventListener("click", () => this._call("stop", {}));
+    $("cp-reset").addEventListener("click", () => {
+      if (!window.confirm(this._t.reset_confirm)) return;
+      const coal = this._selectedCoal();
+      this._call("reset_learning", coal ? { coal_type: coal } : {});
+    });
     $("cp-coal").addEventListener("change", (e) => {
       this._sel.coal = e.target.value;
       this._sel.count = null;
@@ -424,6 +435,7 @@ class CoalPilotCard extends HTMLElement {
     }
 
     $("cp-learned").textContent = fmt(this._coalObj(this._selectedCoal())?.learned_time ?? a.learned ?? 0);
+    $("cp-reset").style.display = idle && mode === "auto" && this._selectedCoal() ? "flex" : "none";
     $("cp-last").textContent = a.last_session || "—";
 
     const hist = a.history || [];
@@ -513,4 +525,4 @@ window.customCards.push({
   preview: false,
   documentationURL: "https://github.com/bonderaustria/ha-coalpilot",
 });
-console.info("%c COALPILOT-CARD %c  v0.1.9 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");
+console.info("%c COALPILOT-CARD %c  v0.1.10 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");

@@ -106,3 +106,20 @@ set_fixed_time:
           max: 1800
           unit_of_measurement: s
           mode: box
+
+reset_learning:
+  name: Reset learned time
+  description: Reset learned time(s) back to the coal's configured start value.
+  fields:
+    entry_id:
+      name: Oven
+      required: false
+      selector:
+        config_entry:
+          integration: coalpilot
+    coal_type:
+      name: Coal type
+      description: ID of the coal type to reset. Omit to reset all coal types.
+      required: false
+      selector:
+        text:

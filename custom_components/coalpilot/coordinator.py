@@ -339,21 +339,13 @@ class CoalPilotCoordinator:
         burned = max(0, int(self._session_total))
 
         # --- learning (auto mode only, per coal type) ---
-        if self.mode == MODE_AUTO and coal_id is not None:
+        # Adjust the LEARNED time relative to itself, exactly as the buttons
+        # promise (-30s / +30s). This is independent of how long the session
+        # actually ran, so finishing early never skews the direction.
+        if self.mode == MODE_AUTO and coal_id is not None and verdict != VERDICT_PERFECT:
             current = self.learned_for(coal_id)
-            if verdict == VERDICT_PERFECT:
-                target = burned or current
-            elif verdict == VERDICT_SHORTER:
-                target = burned - ADJUST_STEP
-            elif verdict == VERDICT_LONGER:
-                target = burned + ADJUST_STEP
-            else:
-                target = current
-            # exponential moving average -> smooth, less jumpy
-            new_learned = _clamp(
-                current * (1 - SMOOTHING_ALPHA) + target * SMOOTHING_ALPHA
-            )
-            self.learned[coal_id] = new_learned
+            delta = -ADJUST_STEP if verdict == VERDICT_SHORTER else ADJUST_STEP
+            self.learned[coal_id] = _clamp(current + delta)
 
         # --- statistics ---
         self.stats_sessions_total += 1
@@ -380,6 +372,17 @@ class CoalPilotCoordinator:
 
         self.phase = PHASE_IDLE
         self._sync_base_time()
+        await self._async_save()
+        self.async_notify()
+
+    async def async_reset_learning(self, coal_id: str | None = None) -> None:
+        """Reset learned time(s) back to the configured start baseline."""
+        if coal_id:
+            self.learned.pop(coal_id, None)
+        else:
+            self.learned.clear()
+        if self.phase == PHASE_IDLE:
+            self._sync_base_time()
         await self._async_save()
         self.async_notify()
 

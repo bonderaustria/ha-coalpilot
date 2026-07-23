@@ -26,6 +26,7 @@ from .const import (
     MODE_FIXED,
     SERVICE_FEEDBACK,
     SERVICE_FINISH,
+    SERVICE_RESET_LEARNING,
     SERVICE_SET_FIXED_TIME,
     SERVICE_START,
     SERVICE_STOP,
@@ -43,7 +44,7 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 CARD_FILENAME = "coalpilot-card.js"
 CARD_URL = f"/{DOMAIN}/{CARD_FILENAME}"
-CARD_VERSION = "0.1.9"  # bump to bust the browser cache when the card changes
+CARD_VERSION = "0.1.10"  # bump to bust the browser cache when the card changes
 
 
 async def _async_register_card(hass: HomeAssistant) -> None:
@@ -184,6 +185,10 @@ def _async_register_services(hass: HomeAssistant) -> None:
         for coord in _resolve(hass, call):
             await coord.async_set_fixed_time(call.data[ATTR_FIXED_TIME])
 
+    async def _reset_learning(call: ServiceCall) -> None:
+        for coord in _resolve(hass, call):
+            await coord.async_reset_learning(call.data.get(ATTR_COAL_TYPE))
+
     entry_target = {vol.Optional("entry_id"): vol.Any(cv.string, [cv.string])}
 
     hass.services.async_register(
@@ -232,5 +237,13 @@ def _async_register_services(hass: HomeAssistant) -> None:
                     vol.Coerce(int), vol.Range(min=1)
                 ),
             }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_RESET_LEARNING,
+        _reset_learning,
+        schema=vol.Schema(
+            {**entry_target, vol.Optional(ATTR_COAL_TYPE): cv.string}
         ),
     )
