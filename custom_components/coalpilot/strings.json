@@ -1,0 +1,97 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "CoalPilot – Shisha oven",
+        "description": "Set up an oven CoalPilot controls. You can add coal types afterwards under Configure.",
+        "data": {
+          "name": "Name",
+          "oven_entity": "Oven switch",
+          "default_time": "Default burn time (minutes)"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "CoalPilot",
+        "menu_options": {
+          "add_coal": "Add coal type",
+          "manage_coal": "Edit / remove coal type",
+          "notify": "Notification",
+          "settings": "Settings"
+        }
+      },
+      "add_coal": {
+        "title": "Add coal type",
+        "data": {
+          "name": "Name",
+          "size_mm": "Size (mm)",
+          "shape": "Shape",
+          "default_count": "Default count",
+          "start_time": "Starting burn time (minutes)",
+          "is_default": "Use as default"
+        }
+      },
+      "manage_coal": {
+        "title": "Choose a coal type",
+        "data": { "coal": "Coal type" }
+      },
+      "edit_coal": {
+        "title": "Edit {name}",
+        "data": {
+          "name": "Name",
+          "size_mm": "Size (mm)",
+          "shape": "Shape",
+          "default_count": "Default count",
+          "start_time": "Starting burn time (minutes)",
+          "is_default": "Use as default",
+          "delete": "Delete this coal type"
+        }
+      },
+      "notify": {
+        "title": "Notification",
+        "description": "Sent when the timer finishes. Placeholders: {kohle}/{coal}, {dauer}/{duration}, {ofen}/{oven}, {uhrzeit}/{time}.",
+        "data": {
+          "notify_service": "Notify service (e.g. notify.mobile_app_phone)",
+          "notify_title": "Title",
+          "notify_message": "Message"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "data": {
+          "default_time": "Default burn time (minutes)",
+          "cancel_asks_feedback": "Ask for feedback when stopped early"
+        }
+      }
+    }
+  },
+  "selector": {
+    "coal_shape": {
+      "options": {
+        "cube": "Cube",
+        "flat": "Flat",
+        "natural": "Natural coal"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state": { "name": "State" },
+      "remaining": { "name": "Remaining" },
+      "learned": { "name": "Learned time" },
+      "sessions_total": { "name": "Sessions total" },
+      "runtime_total": { "name": "Oven runtime total" },
+      "avg_burn": { "name": "Average burn time" }
+    }
+  },
+  "services": {
+    "start": { "name": "Start", "description": "Start the oven and the burn timer." },
+    "stop": { "name": "Stop", "description": "Hard-stop and discard the session." },
+    "finish": { "name": "Finish now", "description": "Stop early and ask for feedback." },
+    "feedback": { "name": "Feedback", "description": "Rate the last session." },
+    "set_fixed_time": { "name": "Set fixed time", "description": "Set the fixed burn time." }
+  }
+}

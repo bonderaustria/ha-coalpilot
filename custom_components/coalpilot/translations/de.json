@@ -1,0 +1,97 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "CoalPilot – Shisha-Ofen",
+        "description": "Richte einen Ofen ein, den CoalPilot steuert. Kohlearten legst du danach unter „Konfigurieren“ an.",
+        "data": {
+          "name": "Name",
+          "oven_entity": "Ofen-Schalter",
+          "default_time": "Standard-Brenndauer (Minuten)"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "CoalPilot",
+        "menu_options": {
+          "add_coal": "Kohleart hinzufügen",
+          "manage_coal": "Kohleart bearbeiten / löschen",
+          "notify": "Benachrichtigung",
+          "settings": "Einstellungen"
+        }
+      },
+      "add_coal": {
+        "title": "Kohleart hinzufügen",
+        "data": {
+          "name": "Name",
+          "size_mm": "Größe (mm)",
+          "shape": "Form",
+          "default_count": "Standard-Stückzahl",
+          "start_time": "Start-Brenndauer (Minuten)",
+          "is_default": "Als Standard verwenden"
+        }
+      },
+      "manage_coal": {
+        "title": "Kohleart auswählen",
+        "data": { "coal": "Kohleart" }
+      },
+      "edit_coal": {
+        "title": "{name} bearbeiten",
+        "data": {
+          "name": "Name",
+          "size_mm": "Größe (mm)",
+          "shape": "Form",
+          "default_count": "Standard-Stückzahl",
+          "start_time": "Start-Brenndauer (Minuten)",
+          "is_default": "Als Standard verwenden",
+          "delete": "Diese Kohleart löschen"
+        }
+      },
+      "notify": {
+        "title": "Benachrichtigung",
+        "description": "Wird gesendet, wenn der Timer abläuft. Platzhalter: {kohle}, {dauer}, {ofen}, {uhrzeit}.",
+        "data": {
+          "notify_service": "Notify-Dienst (z. B. notify.mobile_app_handy)",
+          "notify_title": "Titel",
+          "notify_message": "Text"
+        }
+      },
+      "settings": {
+        "title": "Einstellungen",
+        "data": {
+          "default_time": "Standard-Brenndauer (Minuten)",
+          "cancel_asks_feedback": "Bei frühem Stopp Feedback abfragen"
+        }
+      }
+    }
+  },
+  "selector": {
+    "coal_shape": {
+      "options": {
+        "cube": "Würfel",
+        "flat": "Flach",
+        "natural": "Naturkohle"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state": { "name": "Status" },
+      "remaining": { "name": "Verbleibend" },
+      "learned": { "name": "Gelernte Zeit" },
+      "sessions_total": { "name": "Sessions gesamt" },
+      "runtime_total": { "name": "Ofen-Laufzeit gesamt" },
+      "avg_burn": { "name": "Ø Brenndauer" }
+    }
+  },
+  "services": {
+    "start": { "name": "Starten", "description": "Startet den Ofen und den Timer." },
+    "stop": { "name": "Stoppen", "description": "Hart stoppen, Session verwerfen." },
+    "finish": { "name": "Jetzt beenden", "description": "Früh beenden und Feedback abfragen." },
+    "feedback": { "name": "Feedback", "description": "Bewerte die letzte Session." },
+    "set_fixed_time": { "name": "Feste Zeit setzen", "description": "Setzt die feste Brenndauer." }
+  }
+}

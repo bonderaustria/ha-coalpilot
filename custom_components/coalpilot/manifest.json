@@ -1,0 +1,12 @@
+{
+  "domain": "coalpilot",
+  "name": "CoalPilot",
+  "codeowners": ["@justin-troebinger"],
+  "config_flow": true,
+  "documentation": "https://github.com/justin-troebinger/ha-coalpilot",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/justin-troebinger/ha-coalpilot/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

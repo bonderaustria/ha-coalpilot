@@ -1,0 +1,108 @@
+start:
+  name: Start
+  description: Start the oven and the burn timer.
+  fields:
+    entry_id:
+      name: Oven
+      description: Target CoalPilot config entry (optional if only one exists).
+      required: false
+      selector:
+        config_entry:
+          integration: coalpilot
+    coal_type:
+      name: Coal type
+      description: ID of the coal type to burn (defaults to the configured default).
+      required: false
+      selector:
+        text:
+    count:
+      name: Count
+      description: Number of coals for this session.
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 10
+          mode: box
+    mode:
+      name: Mode
+      description: auto (learned time) or fixed.
+      required: false
+      selector:
+        select:
+          options:
+            - auto
+            - fixed
+    fixed_time:
+      name: Fixed time
+      description: Fixed burn time in seconds (fixed mode only).
+      required: false
+      selector:
+        number:
+          min: 60
+          max: 1800
+          unit_of_measurement: s
+          mode: box
+
+stop:
+  name: Stop
+  description: Hard-stop the oven and discard the session (no feedback).
+  fields:
+    entry_id:
+      name: Oven
+      required: false
+      selector:
+        config_entry:
+          integration: coalpilot
+
+finish:
+  name: Finish now
+  description: Stop the oven early and move to the feedback phase.
+  fields:
+    entry_id:
+      name: Oven
+      required: false
+      selector:
+        config_entry:
+          integration: coalpilot
+
+feedback:
+  name: Feedback
+  description: Rate the last session so CoalPilot can learn the perfect time.
+  fields:
+    entry_id:
+      name: Oven
+      required: false
+      selector:
+        config_entry:
+          integration: coalpilot
+    verdict:
+      name: Verdict
+      description: shorter, perfect or longer.
+      required: true
+      selector:
+        select:
+          options:
+            - shorter
+            - perfect
+            - longer
+
+set_fixed_time:
+  name: Set fixed time
+  description: Set the fixed burn time in seconds.
+  fields:
+    entry_id:
+      name: Oven
+      required: false
+      selector:
+        config_entry:
+          integration: coalpilot
+    fixed_time:
+      name: Fixed time
+      required: true
+      selector:
+        number:
+          min: 60
+          max: 1800
+          unit_of_measurement: s
+          mode: box
