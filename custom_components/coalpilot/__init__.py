@@ -43,7 +43,7 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 CARD_FILENAME = "coalpilot-card.js"
 CARD_URL = f"/{DOMAIN}/{CARD_FILENAME}"
-CARD_VERSION = "0.1.7"  # bump to bust the browser cache when the card changes
+CARD_VERSION = "0.1.8"  # bump to bust the browser cache when the card changes
 
 
 async def _async_register_card(hass: HomeAssistant) -> None:
@@ -63,35 +63,46 @@ async def _async_register_card(hass: HomeAssistant) -> None:
     except RuntimeError:
         pass  # already registered (after a reload) – fine
 
-    # 2) Inject as a frontend module. This is the SINGLE load path and always
-    #    carries the current version, so exactly one card version is ever loaded.
-    try:
-        add_extra_js_url(hass, versioned_url)
-    except Exception:  # noqa: BLE001
-        _LOGGER.debug("CoalPilot: add_extra_js_url failed", exc_info=True)
+    # 2) Load the card through EXACTLY ONE path at the current version:
+    #    - storage-mode dashboards: a Lovelace resource. HA awaits resources
+    #      before rendering cards, so the element is always defined in time
+    #      (no "Custom element not found" race) — and it is kept in sync to the
+    #      current version so no stale copy can linger.
+    #    - YAML-mode dashboards (no resource store): fall back to a frontend
+    #      module include.
+    managed = await _async_ensure_lovelace_resource(hass, versioned_url)
+    if not managed:
+        try:
+            add_extra_js_url(hass, versioned_url)
+        except Exception:  # noqa: BLE001
+            _LOGGER.debug("CoalPilot: add_extra_js_url failed", exc_info=True)
 
-    # 3) Remove any Lovelace resource an earlier version registered. Having both
-    #    a resource and the module could load two card versions at once, and
-    #    whichever defined the element first would win (possibly the old one).
-    #    Removing it guarantees a single, current version.
-    await _async_remove_lovelace_resource(hass)
 
-
-async def _async_remove_lovelace_resource(hass: HomeAssistant) -> None:
-    """Remove any leftover CoalPilot card resource from earlier versions."""
+async def _async_ensure_lovelace_resource(hass: HomeAssistant, url: str) -> bool:
+    """Create/update the card's Lovelace resource. Returns True if managed."""
     try:
         lovelace = hass.data.get("lovelace")
         resources = getattr(lovelace, "resources", None)
         if resources is None:
-            return
+            return False
         if not getattr(resources, "loaded", True):
             await resources.async_load()
             resources.loaded = True
-        for item in list(resources.async_items()):
-            if item.get("url", "").split("?")[0] == CARD_URL:
-                await resources.async_delete_item(item["id"])
+        base = url.split("?")[0]
+        existing = None
+        for item in resources.async_items():
+            if item.get("url", "").split("?")[0] == base:
+                existing = item
+                break
+        if existing is None:
+            await resources.async_create_item({"res_type": "module", "url": url})
+        elif existing.get("url") != url:
+            # keep the version query current so no stale copy loads
+            await resources.async_update_item(existing["id"], {"url": url})
+        return True
     except Exception:  # noqa: BLE001 - YAML mode has no resource store
-        _LOGGER.debug("CoalPilot: Lovelace resource cleanup skipped", exc_info=True)
+        _LOGGER.debug("CoalPilot: Lovelace resource handling skipped", exc_info=True)
+        return False
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
