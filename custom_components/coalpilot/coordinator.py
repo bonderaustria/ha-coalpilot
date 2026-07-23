@@ -376,6 +376,24 @@ class CoalPilotCoordinator:
         await self._async_save()
         self.async_notify()
 
+    async def async_reset_data(
+        self, learned: bool = False, history: bool = False, stats: bool = False
+    ) -> None:
+        """Wipe the selected stored data (learned times / history / statistics)."""
+        if learned:
+            self.learned.clear()
+        if history:
+            self.history.clear()
+            self.last_session = None
+        if stats:
+            self.stats_sessions_total = 0
+            self.stats_runtime_total = 0
+            self.sessions.clear()
+        if self.phase == PHASE_IDLE:
+            self._sync_base_time()
+        await self._async_save()
+        self.async_notify()
+
     async def async_reset_learning(self, coal_id: str | None = None) -> None:
         """Reset learned time(s) back to the configured start baseline."""
         if coal_id:

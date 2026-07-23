@@ -117,6 +117,7 @@ Because `sessions_total` is a `total_increasing` sensor, Home Assistant's **Stat
 
 - **`test_notify`** sends the configured notification immediately — handy to verify push delivery without starting the oven.
 - **`reset_learning`** resets a coal's learned time (or all coals) back to its configured start value.
+- **`reset_data`** deletes learned times, history and/or statistics. The same is available in the UI under **Configure → Reset stored data**, with a checkbox per data type.
 
 A notification is sent **only when the timer runs out naturally** — never when you stop or discard a session manually.
 

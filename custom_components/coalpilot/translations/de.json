@@ -20,7 +20,17 @@
           "add_coal": "Kohleart hinzufügen",
           "manage_coal": "Kohleart bearbeiten / löschen",
           "notify": "Benachrichtigung",
-          "settings": "Einstellungen"
+          "settings": "Einstellungen",
+          "reset_data": "Daten zurücksetzen"
+        }
+      },
+      "reset_data": {
+        "title": "Daten zurücksetzen",
+        "description": "Wähle aus, was gelöscht werden soll. Das lässt sich nicht rückgängig machen.",
+        "data": {
+          "reset_learned": "Gelernte Zeiten (zurück auf den Startwert je Kohleart)",
+          "reset_history": "Verlauf (alle bisherigen Sessions)",
+          "reset_stats": "Statistik (Session-Zähler, Laufzeit, Durchschnitt)"
         }
       },
       "add_coal": {

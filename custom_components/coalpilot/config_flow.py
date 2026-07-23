@@ -123,8 +123,38 @@ class CoalPilotOptionsFlow(OptionsFlow):
     ) -> ConfigFlowResult:
         return self.async_show_menu(
             step_id="init",
-            menu_options=["add_coal", "manage_coal", "notify", "settings"],
+            menu_options=[
+                "add_coal",
+                "manage_coal",
+                "notify",
+                "settings",
+                "reset_data",
+            ],
         )
+
+    # ---- reset stored data ----------------------------------------------
+
+    async def async_step_reset_data(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        if user_input is not None:
+            coordinator = self.hass.data.get(DOMAIN, {}).get(self.entry.entry_id)
+            if coordinator is not None:
+                await coordinator.async_reset_data(
+                    learned=user_input.get("reset_learned", False),
+                    history=user_input.get("reset_history", False),
+                    stats=user_input.get("reset_stats", False),
+                )
+            return await self._save()
+
+        schema = vol.Schema(
+            {
+                vol.Optional("reset_learned", default=False): bool,
+                vol.Optional("reset_history", default=False): bool,
+                vol.Optional("reset_stats", default=False): bool,
+            }
+        )
+        return self.async_show_form(step_id="reset_data", data_schema=schema)
 
     # ---- add coal --------------------------------------------------------
 

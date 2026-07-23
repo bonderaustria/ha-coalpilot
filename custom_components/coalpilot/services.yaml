@@ -134,3 +134,32 @@ test_notify:
       selector:
         config_entry:
           integration: coalpilot
+
+reset_data:
+  name: Reset stored data
+  description: Delete learned times, history and/or statistics. Cannot be undone.
+  fields:
+    entry_id:
+      name: Oven
+      required: false
+      selector:
+        config_entry:
+          integration: coalpilot
+    learned:
+      name: Learned times
+      description: Reset learned times back to each coal's start value.
+      default: true
+      selector:
+        boolean:
+    history:
+      name: History
+      description: Delete all past sessions.
+      default: true
+      selector:
+        boolean:
+    statistics:
+      name: Statistics
+      description: Reset session counts, total runtime and average.
+      default: true
+      selector:
+        boolean:

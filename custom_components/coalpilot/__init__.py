@@ -20,12 +20,16 @@ from .const import (
     ATTR_COUNT,
     ATTR_FIXED_TIME,
     ATTR_MODE,
+    ATTR_RESET_HISTORY,
+    ATTR_RESET_LEARNED,
+    ATTR_RESET_STATS,
     ATTR_VERDICT,
     DOMAIN,
     MODE_AUTO,
     MODE_FIXED,
     SERVICE_FEEDBACK,
     SERVICE_FINISH,
+    SERVICE_RESET_DATA,
     SERVICE_RESET_LEARNING,
     SERVICE_SET_FIXED_TIME,
     SERVICE_START,
@@ -45,7 +49,7 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 CARD_FILENAME = "coalpilot-card.js"
 CARD_URL = f"/{DOMAIN}/{CARD_FILENAME}"
-CARD_VERSION = "0.1.11"  # bump to bust the browser cache when the card changes
+CARD_VERSION = "0.1.12"  # bump to bust the browser cache when the card changes
 
 
 async def _async_register_card(hass: HomeAssistant) -> None:
@@ -194,6 +198,14 @@ def _async_register_services(hass: HomeAssistant) -> None:
         for coord in _resolve(hass, call):
             await coord.async_test_notify()
 
+    async def _reset_data(call: ServiceCall) -> None:
+        for coord in _resolve(hass, call):
+            await coord.async_reset_data(
+                learned=call.data.get(ATTR_RESET_LEARNED, True),
+                history=call.data.get(ATTR_RESET_HISTORY, True),
+                stats=call.data.get(ATTR_RESET_STATS, True),
+            )
+
     entry_target = {vol.Optional("entry_id"): vol.Any(cv.string, [cv.string])}
 
     hass.services.async_register(
@@ -257,4 +269,17 @@ def _async_register_services(hass: HomeAssistant) -> None:
         SERVICE_TEST_NOTIFY,
         _test_notify,
         schema=vol.Schema(entry_target),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_RESET_DATA,
+        _reset_data,
+        schema=vol.Schema(
+            {
+                **entry_target,
+                vol.Optional(ATTR_RESET_LEARNED, default=True): cv.boolean,
+                vol.Optional(ATTR_RESET_HISTORY, default=True): cv.boolean,
+                vol.Optional(ATTR_RESET_STATS, default=True): cv.boolean,
+            }
+        ),
     )

@@ -20,7 +20,17 @@
           "add_coal": "Add coal type",
           "manage_coal": "Edit / remove coal type",
           "notify": "Notification",
-          "settings": "Settings"
+          "settings": "Settings",
+          "reset_data": "Reset stored data"
+        }
+      },
+      "reset_data": {
+        "title": "Reset stored data",
+        "description": "Tick what you want to delete. This cannot be undone.",
+        "data": {
+          "reset_learned": "Learned times (back to each coal's start value)",
+          "reset_history": "History (all past sessions)",
+          "reset_stats": "Statistics (session counts, runtime, average)"
         }
       },
       "add_coal": {
