@@ -59,17 +59,25 @@ The card ships **inside the integration** and is registered on the frontend auto
    - Set up an optional **notification** (service + title + message)
    - Tweak settings (default time, feedback-on-early-stop)
 
-### Add the card
+### Add the card (no YAML needed)
+
+The card is added **interactively** through the dashboard UI — you never touch YAML:
+
+1. Open your dashboard → **Edit dashboard** (pencil, top right).
+2. **Add card** → tab **By card** → search **CoalPilot** → pick **CoalPilot Card**.
+3. In the visual editor, choose your **oven** from the searchable dropdown (the CoalPilot *State* sensor). Optionally set a **title** and **accent color**.
+4. **Save.** Done.
+
+<details><summary>Advanced: YAML</summary>
 
 ```yaml
 type: custom:coalpilot-card
 entity: sensor.shisha_ofen_state   # the CoalPilot "State" sensor
 # optional:
-# title: Wohnzimmer Ofen
+# title: Living room oven
 # accent_color: "#ff5722"
 ```
-
-You can also add it from the dashboard UI: **Edit dashboard → Add card → search "CoalPilot"**.
+</details>
 
 ---
 
@@ -105,13 +113,12 @@ Because `sessions_total` is a `total_increasing` sensor, Home Assistant's **Stat
 
 ## 🔧 Services
 
-`coalpilot.start`, `coalpilot.stop`, `coalpilot.finish`, `coalpilot.feedback`, `coalpilot.set_fixed_time` — all target an oven via `entry_id` (optional if you only have one). See the Developer Tools → Services UI for fields.
+`coalpilot.start`, `coalpilot.stop`, `coalpilot.finish`, `coalpilot.feedback`, `coalpilot.set_fixed_time`, `coalpilot.reset_learning`, `coalpilot.test_notify` — all target an oven via `entry_id` (optional if you only have one). See the Developer Tools → Actions UI for fields.
 
----
+- **`test_notify`** sends the configured notification immediately — handy to verify push delivery without starting the oven.
+- **`reset_learning`** resets a coal's learned time (or all coals) back to its configured start value.
 
-## 🧠 How the learning works
-
-Each coal type keeps its own learned time. After a session, your verdict nudges a target (**Perfect** = the time you just burned, **Shorter/Longer** = ∓30 s), and the learned value moves toward it with a smoothing factor — so it converges without jumping around. Values stay between 1 and 30 minutes.
+A notification is sent **only when the timer runs out naturally** — never when you stop or discard a session manually.
 
 ---
 
