@@ -276,19 +276,35 @@ class CoalPilotOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is not None:
-            self._options[CONF_NOTIFY_SERVICE] = user_input.get(CONF_NOTIFY_SERVICE)
+            svc = user_input.get(CONF_NOTIFY_SERVICE)
+            self._options[CONF_NOTIFY_SERVICE] = svc or None  # "" / "none" -> disabled
             self._options[CONF_NOTIFY_TITLE] = user_input.get(CONF_NOTIFY_TITLE)
             self._options[CONF_NOTIFY_MESSAGE] = user_input.get(CONF_NOTIFY_MESSAGE)
             return await self._save()
 
+        # Build a dropdown of the notify.* services available on this system.
+        notify_services = sorted(
+            self.hass.services.async_services().get("notify", {}).keys()
+        )
+        service_options = [
+            selector.SelectOptionDict(value="", label="— keine —"),
+        ] + [
+            selector.SelectOptionDict(value=f"notify.{name}", label=f"notify.{name}")
+            for name in notify_services
+        ]
+        current_service = self._options.get(CONF_NOTIFY_SERVICE) or ""
+
         schema = vol.Schema(
             {
                 vol.Optional(
-                    CONF_NOTIFY_SERVICE,
-                    description={
-                        "suggested_value": self._options.get(CONF_NOTIFY_SERVICE)
-                    },
-                ): str,
+                    CONF_NOTIFY_SERVICE, default=current_service
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=service_options,
+                        mode="dropdown",
+                        custom_value=True,
+                    )
+                ),
                 vol.Optional(
                     CONF_NOTIFY_TITLE,
                     description={
