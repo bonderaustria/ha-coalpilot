@@ -4,14 +4,14 @@
 *Der smarte Shisha-Kohle-Timer für Home Assistant, der deine perfekte Zeit selbst lernt.*
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
-![version](https://img.shields.io/badge/version-0.1.0-ff5722)
+[![release](https://img.shields.io/github/v/release/bonderaustria/ha-coalpilot?color=ff5722&label=release)](https://github.com/bonderaustria/ha-coalpilot/releases)
 
 CoalPilot switches your oven (any `switch`, `input_boolean` or `light`) on, runs a burn timer, and after every session you tap **Shorter / Perfect / Longer**. It learns the ideal time **per coal type** (26 mm burns longer than 20 mm), tracks statistics you can graph, and can push a notification the moment the coal is ready.
 
 <p align="center">
-  <img src="docs/images/idle.png" width="30%" alt="Ready" />
-  <img src="docs/images/running.png" width="30%" alt="Running" />
-  <img src="docs/images/feedback.png" width="30%" alt="Feedback" />
+  <img src="https://raw.githubusercontent.com/bonderaustria/ha-coalpilot/master/docs/images/idle.png" width="30%" alt="Ready" />
+  <img src="https://raw.githubusercontent.com/bonderaustria/ha-coalpilot/master/docs/images/running.png" width="30%" alt="Running" />
+  <img src="https://raw.githubusercontent.com/bonderaustria/ha-coalpilot/master/docs/images/feedback.png" width="30%" alt="Feedback" />
 </p>
 
 ---
