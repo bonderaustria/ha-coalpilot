@@ -10,6 +10,7 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.storage import Store
@@ -400,17 +401,17 @@ class CoalPilotCoordinator:
             label += f" · {count}"
         return label
 
-    async def _send_notify(self) -> None:
+    def _notify_texts(self, coal_id: str | None, count: int, duration: int):
+        """Return (service, title, message) with placeholders filled, or None."""
         service = self.options.get(CONF_NOTIFY_SERVICE)
         if not service:
-            return
-        coal = self.get_coal(self._session_coal)
-        oven = self.options.get(CONF_OVEN_ENTITY, "")
+            return None
+        coal = self.get_coal(coal_id)
         placeholders = {
-            "{kohle}": self._coal_label(coal, self._session_count),
-            "{coal}": self._coal_label(coal, self._session_count),
-            "{dauer}": _fmt(self.total),
-            "{duration}": _fmt(self.total),
+            "{kohle}": self._coal_label(coal, count),
+            "{coal}": self._coal_label(coal, count),
+            "{dauer}": _fmt(duration),
+            "{duration}": _fmt(duration),
             "{ofen}": self.entry.title,
             "{oven}": self.entry.title,
             "{uhrzeit}": time.strftime("%H:%M"),
@@ -424,18 +425,39 @@ class CoalPilotCoordinator:
         for token, value in placeholders.items():
             title = title.replace(token, str(value))
             message = message.replace(token, str(value))
+        return service, title, message
 
+    async def _call_notify(self, service: str, title: str, message: str, blocking: bool):
         # service may be "notify.mobile_app_x" or just "mobile_app_x"
         if "." in service:
             domain, svc = service.split(".", 1)
         else:
             domain, svc = "notify", service
+        await self.hass.services.async_call(
+            domain, svc, {"title": title, "message": message}, blocking=blocking
+        )
+
+    async def _send_notify(self) -> None:
+        texts = self._notify_texts(self._session_coal, self._session_count, self.total)
+        if texts is None:
+            return
         try:
-            await self.hass.services.async_call(
-                domain, svc, {"title": title, "message": message}, blocking=False
-            )
+            await self._call_notify(*texts, blocking=False)
         except Exception:  # noqa: BLE001 - notify is best-effort
-            _LOGGER.warning("CoalPilot notify via %s failed", service, exc_info=True)
+            _LOGGER.warning("CoalPilot notify failed", exc_info=True)
+
+    async def async_test_notify(self) -> None:
+        """Send the configured notification right now (for testing). Raises on error."""
+        coal_id = self.selected_coal
+        count = self.current_count
+        duration = self.total or self.learned_for(coal_id)
+        texts = self._notify_texts(coal_id, count, duration)
+        if texts is None:
+            raise HomeAssistantError(
+                "CoalPilot: no notify service configured (Configure → Notification)."
+            )
+        # blocking=True so any error surfaces to the caller (Developer Tools).
+        await self._call_notify(*texts, blocking=True)
 
     # ---- snapshot for the card ------------------------------------------
 

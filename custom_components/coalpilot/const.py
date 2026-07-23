@@ -62,6 +62,7 @@ SERVICE_FINISH: Final = "finish"
 SERVICE_FEEDBACK: Final = "feedback"
 SERVICE_SET_FIXED_TIME: Final = "set_fixed_time"
 SERVICE_RESET_LEARNING: Final = "reset_learning"
+SERVICE_TEST_NOTIFY: Final = "test_notify"
 
 ATTR_COAL_TYPE: Final = "coal_type"
 ATTR_COUNT: Final = "count"

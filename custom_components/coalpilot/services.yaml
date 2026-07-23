@@ -123,3 +123,14 @@ reset_learning:
       required: false
       selector:
         text:
+
+test_notify:
+  name: Test notification
+  description: Send the configured notification right now (no oven/timer needed).
+  fields:
+    entry_id:
+      name: Oven
+      required: false
+      selector:
+        config_entry:
+          integration: coalpilot
