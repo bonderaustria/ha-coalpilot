@@ -7,3 +7,4 @@ venv/
 
 # dev-only screenshot harness
 .render/
+.claude/
