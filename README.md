@@ -8,6 +8,12 @@
 
 CoalPilot switches your oven (any `switch`, `input_boolean` or `light`) on, runs a burn timer, and after every session you tap **Shorter / Perfect / Longer**. It learns the ideal time **per coal type** (26 mm burns longer than 20 mm), tracks statistics you can graph, and can push a notification the moment the coal is ready.
 
+<p align="center">
+  <img src="docs/images/idle.png" width="30%" alt="Ready" />
+  <img src="docs/images/running.png" width="30%" alt="Running" />
+  <img src="docs/images/feedback.png" width="30%" alt="Feedback" />
+</p>
+
 ---
 
 ## ✨ Features

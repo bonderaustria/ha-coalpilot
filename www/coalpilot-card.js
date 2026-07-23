@@ -161,7 +161,7 @@ class CoalPilotCard extends HTMLElement {
       <style>
         @keyframes floatUp {0%{transform:translateY(6px);opacity:0}100%{transform:translateY(0);opacity:1}}
         :host{--cp-accent:${a};}
-        .wrap{font-family:'Inter Tight',system-ui,sans-serif;color:#e7e9ec;
+        .wrap{display:block;font-family:'Inter Tight',system-ui,sans-serif;color:#e7e9ec;
           background:linear-gradient(180deg,#15181d,#101318);border:1px solid #23272e;
           border-radius:var(--ha-card-border-radius,28px);padding:26px 24px 22px;
           box-shadow:0 30px 80px -30px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.04);box-sizing:border-box}
