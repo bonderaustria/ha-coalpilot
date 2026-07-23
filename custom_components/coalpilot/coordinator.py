@@ -439,6 +439,7 @@ class CoalPilotCoordinator:
     def as_dict(self) -> dict[str, Any]:
         coal = self.get_coal(self.selected_coal)
         return {
+            "entry_id": self.entry.entry_id,
             "mode": self.mode,
             "phase": self.phase,
             "remaining": self.remaining,

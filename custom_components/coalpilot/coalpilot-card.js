@@ -144,9 +144,11 @@ class CoalPilotCard extends HTMLElement {
   }
 
   _call(service, data) {
-    return this._hass.callService("coalpilot", service, { ...data }, {
-      entity_id: this._config.entity,
-    });
+    // Target the oven via entry_id (the services don't take entity_id).
+    const payload = { ...data };
+    const eid = this._attrs.entry_id;
+    if (eid) payload.entry_id = eid;
+    return this._hass.callService("coalpilot", service, payload);
   }
 
   // ---- actions ----------------------------------------------------------
@@ -437,4 +439,4 @@ window.customCards.push({
   description: "Shisha oven timer that learns your perfect burn time.",
   preview: true,
 });
-console.info("%c COALPILOT-CARD %c v0.1.2 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");
+console.info("%c COALPILOT-CARD %c  v0.1.3 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");
