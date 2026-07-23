@@ -70,10 +70,10 @@ class CoalPilotCard extends HTMLElement {
   }
 
   setConfig(config) {
-    if (!config.entity) {
-      throw new Error("coalpilot-card: 'entity' (the CoalPilot state sensor) is required");
-    }
-    this._config = config;
+    // Never throw here: a thrown setConfig makes HA show a hard
+    // "Configuration error" card (even briefly during frontend reloads).
+    // A missing entity is handled gracefully in _update() instead.
+    this._config = config || {};
     ensureFonts();
   }
 
@@ -431,12 +431,15 @@ class CoalPilotCard extends HTMLElement {
   }
 }
 
-customElements.define("coalpilot-card", CoalPilotCard);
+if (!customElements.get("coalpilot-card")) {
+  customElements.define("coalpilot-card", CoalPilotCard);
+}
 window.customCards = window.customCards || [];
+if (!window.customCards.some((c) => c.type === "coalpilot-card"))
 window.customCards.push({
   type: "coalpilot-card",
   name: "CoalPilot Card",
   description: "Shisha oven timer that learns your perfect burn time.",
   preview: true,
 });
-console.info("%c COALPILOT-CARD %c  v0.1.3 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");
+console.info("%c COALPILOT-CARD %c  v0.1.4 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");

@@ -43,26 +43,58 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 CARD_FILENAME = "coalpilot-card.js"
 CARD_URL = f"/{DOMAIN}/{CARD_FILENAME}"
-CARD_VERSION = "0.1.3"  # bump to bust the browser cache when the card changes
+CARD_VERSION = "0.1.4"  # bump to bust the browser cache when the card changes
 
 
 async def _async_register_card(hass: HomeAssistant) -> None:
-    """Serve the Lovelace card and auto-load it on the frontend (once)."""
+    """Serve the Lovelace card and make sure it loads before dashboards render."""
     flag = f"{DOMAIN}_card_registered"
     if hass.data.get(flag):
         return
+    hass.data[flag] = True
     card_path = os.path.join(os.path.dirname(__file__), CARD_FILENAME)
+    versioned_url = f"{CARD_URL}?v={CARD_VERSION}"
+
+    # 1) Serve the file.
     try:
         await hass.http.async_register_static_paths(
             [StaticPathConfig(CARD_URL, card_path, False)]
         )
-        add_extra_js_url(hass, f"{CARD_URL}?v={CARD_VERSION}")
-        hass.data[flag] = True
     except RuntimeError:
-        # path already registered (e.g. after a reload) – safe to ignore
-        hass.data[flag] = True
-    except Exception:  # noqa: BLE001 - card is best-effort, never block setup
-        _LOGGER.warning("CoalPilot: could not auto-register the Lovelace card", exc_info=True)
+        pass  # already registered (after a reload) – fine
+
+    # 2) Inject as a frontend module (works for storage AND YAML dashboards).
+    try:
+        add_extra_js_url(hass, versioned_url)
+    except Exception:  # noqa: BLE001
+        _LOGGER.debug("CoalPilot: add_extra_js_url failed", exc_info=True)
+
+    # 3) Also register as a Lovelace resource (storage mode): HA awaits these
+    #    before rendering cards, which prevents any "Configuration error" flash
+    #    while the module is still loading.
+    await _async_register_lovelace_resource(hass, versioned_url)
+
+
+async def _async_register_lovelace_resource(hass: HomeAssistant, url: str) -> None:
+    """Best-effort: add the card as a Lovelace resource so it loads early."""
+    try:
+        lovelace = hass.data.get("lovelace")
+        resources = getattr(lovelace, "resources", None)
+        if resources is None:
+            return
+        if not getattr(resources, "loaded", True):
+            await resources.async_load()
+            resources.loaded = True
+        base = url.split("?")[0]
+        for item in resources.async_items():
+            if item.get("url", "").split("?")[0] == base:
+                if item.get("url") != url:
+                    # keep the version query in sync so no stale copy loads
+                    await resources.async_update_item(item["id"], {"url": url})
+                return
+        await resources.async_create_item({"res_type": "module", "url": url})
+    except Exception:  # noqa: BLE001 - YAML mode has no resource store; step 2 covers it
+        _LOGGER.debug("CoalPilot: Lovelace resource registration skipped", exc_info=True)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
