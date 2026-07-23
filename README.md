@@ -124,4 +124,6 @@ A notification is sent **only when the timer runs out naturally** — never when
 
 ## License
 
-[MIT](LICENSE) © Justin Tröbinger
+© 2026 Justin Tröbinger — All rights reserved. **Proprietary** ([LICENSE](LICENSE)).
+
+**Free to use for everyone** in your own Home Assistant (private or commercial), in unmodified form. You may **not** redistribute, modify, fork, mirror or create derivative works without the author's prior written permission.
