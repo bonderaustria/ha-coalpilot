@@ -28,7 +28,7 @@ CoalPilot switches your oven (any `switch`, `input_boolean` or `light`) on, runs
 ### 1. Integration (via HACS — recommended)
 
 1. HACS → **Integrations** → three-dot menu → **Custom repositories**.
-2. Add `https://github.com/justin-troebinger/ha-coalpilot` as category **Integration**.
+2. Add `https://github.com/bonderaustria/ha-coalpilot` as category **Integration**.
 3. Install **CoalPilot**, then **restart Home Assistant**.
 
 <details><summary>Manual installation</summary>
