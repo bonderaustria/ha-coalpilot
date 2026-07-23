@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+import logging
+import os
+
 import voluptuous as vol
 
+from homeassistant.components.frontend import add_extra_js_url
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -30,9 +35,34 @@ from .const import (
 )
 from .coordinator import CoalPilotCoordinator
 
+_LOGGER = logging.getLogger(__name__)
+
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+CARD_FILENAME = "coalpilot-card.js"
+CARD_URL = f"/{DOMAIN}/{CARD_FILENAME}"
+CARD_VERSION = "0.1.2"  # bump to bust the browser cache when the card changes
+
+
+async def _async_register_card(hass: HomeAssistant) -> None:
+    """Serve the Lovelace card and auto-load it on the frontend (once)."""
+    flag = f"{DOMAIN}_card_registered"
+    if hass.data.get(flag):
+        return
+    card_path = os.path.join(os.path.dirname(__file__), CARD_FILENAME)
+    try:
+        await hass.http.async_register_static_paths(
+            [StaticPathConfig(CARD_URL, card_path, False)]
+        )
+        add_extra_js_url(hass, f"{CARD_URL}?v={CARD_VERSION}")
+        hass.data[flag] = True
+    except RuntimeError:
+        # path already registered (e.g. after a reload) – safe to ignore
+        hass.data[flag] = True
+    except Exception:  # noqa: BLE001 - card is best-effort, never block setup
+        _LOGGER.warning("CoalPilot: could not auto-register the Lovelace card", exc_info=True)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -48,6 +78,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_load()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
+    await _async_register_card(hass)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))
     return True

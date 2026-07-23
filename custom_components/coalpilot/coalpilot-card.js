@@ -1,11 +1,49 @@
 /**
  * CoalPilot Card — Lovelace card for the CoalPilot integration.
  * Ember-themed shisha oven timer that learns your perfect burn time.
- * Dependency-free custom element (no build step required).
+ * Dependency-free custom element (no build step required). Bilingual DE/EN,
+ * follows the Home Assistant user language.
  */
 
 const FONT_LINK_ID = "coalpilot-fonts";
 const ACCENT_DEFAULT = "#ff5722";
+
+const STR = {
+  en: {
+    title: "Shisha Oven",
+    status_learn: "Learns your perfect time",
+    status_fixed: "Fixed-time mode",
+    ready: "Ready", running: "Running", done: "Done",
+    tab_auto: "Auto-learn", tab_fixed: "Fixed time",
+    sub_remaining: "remaining", sub_elapsed: "elapsed",
+    sub_fixed: "fixed runtime", sub_planned: "planned",
+    fixed_time: "fixed time",
+    start: "▶  Start oven", stop: "Stop now",
+    fb_title: "How was the coal?", fb_sub: "Adjusts the time for next time",
+    fb_shorter: "Shorter", fb_perfect: "Perfect", fb_longer: "Longer",
+    fb_saved: "saved",
+    coal: "Coal", pcs: "pcs", no_coals: "No coal types – add one first",
+    learned: "Learned time", last: "Last session", history: "History",
+    v_perfect: "Perfect", v_shorter: "Shorter", v_longer: "Longer",
+  },
+  de: {
+    title: "Shisha Ofen",
+    status_learn: "Lernt deine perfekte Zeit",
+    status_fixed: "Feste-Zeit-Modus",
+    ready: "Bereit", running: "Läuft", done: "Fertig",
+    tab_auto: "Auto-Lernen", tab_fixed: "Feste Zeit",
+    sub_remaining: "verbleibend", sub_elapsed: "abgelaufen",
+    sub_fixed: "feste Laufzeit", sub_planned: "geplant",
+    fixed_time: "feste Zeit",
+    start: "▶  Ofen starten", stop: "Jetzt beenden",
+    fb_title: "Wie war die Kohle?", fb_sub: "Passt die Zeit fürs nächste Mal an",
+    fb_shorter: "Kürzer", fb_perfect: "Perfekt", fb_longer: "Länger",
+    fb_saved: "gemerkt",
+    coal: "Kohle", pcs: "Stück", no_coals: "Keine Kohlearten – erst anlegen",
+    learned: "Gelernte Zeit", last: "Letzte Session", history: "Verlauf",
+    v_perfect: "Perfekt", v_shorter: "Kürzer", v_longer: "Länger",
+  },
+};
 
 function ensureFonts() {
   if (document.getElementById(FONT_LINK_ID)) return;
@@ -22,15 +60,13 @@ const fmt = (s) => {
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 };
 
-const VERDICT_LABEL = { perfect: "Perfekt", shorter: "Kürzer", longer: "Länger" };
-
 class CoalPilotCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    // local pre-start selections (idle only)
     this._sel = { mode: null, coal: null, count: null, fixed: null };
     this._rendered = false;
+    this._lang = "en";
   }
 
   setConfig(config) {
@@ -49,7 +85,7 @@ class CoalPilotCard extends HTMLElement {
     const ent = Object.keys(hass?.states || {}).find(
       (e) => e.startsWith("sensor.") && hass.states[e].attributes?.coal_types
     );
-    return { entity: ent || "sensor.shisha_ofen_state" };
+    return { entity: ent || "sensor.shisha_oven_state" };
   }
 
   set hass(hass) {
@@ -58,6 +94,10 @@ class CoalPilotCard extends HTMLElement {
   }
 
   // ---- helpers ----------------------------------------------------------
+
+  get _t() {
+    return STR[this._lang] || STR.en;
+  }
 
   get _state() {
     return this._hass?.states?.[this._config.entity];
@@ -72,7 +112,6 @@ class CoalPilotCard extends HTMLElement {
   }
 
   _remaining() {
-    // prefer the dedicated remaining sensor for 1s resolution
     const base = this._config.entity.replace(/_state$/, "_remaining");
     const rs = this._hass?.states?.[base];
     if (rs && !isNaN(Number(rs.state))) return Number(rs.state);
@@ -105,9 +144,7 @@ class CoalPilotCard extends HTMLElement {
   }
 
   _call(service, data) {
-    const entryId = this._attrs.entry_id; // not always present; fall back to none
-    const payload = { ...data };
-    return this._hass.callService("coalpilot", service, payload, {
+    return this._hass.callService("coalpilot", service, { ...data }, {
       entity_id: this._config.entity,
     });
   }
@@ -143,20 +180,30 @@ class CoalPilotCard extends HTMLElement {
     this._update();
   }
 
+  _curCount() {
+    if (this._sel.count != null) return this._sel.count;
+    const coal = this._coalObj(this._selectedCoal());
+    return coal?.default_count || 1;
+  }
+
   // ---- render -----------------------------------------------------------
 
   _update() {
     if (!this._hass || !this._config) return;
+    const lang = (this._hass.language || "en").toLowerCase().split("-")[0];
+    this._lang = STR[lang] ? lang : "en";
     if (!this._state) {
-      this.shadowRoot.innerHTML = `<div style="padding:16px;color:var(--error-color,#c00)">CoalPilot: Entity <code>${this._config.entity}</code> nicht gefunden.</div>`;
+      this.shadowRoot.innerHTML = `<div style="padding:16px;color:var(--error-color,#c00)">CoalPilot: entity <code>${this._config.entity}</code> not found.</div>`;
+      this._rendered = false;
       return;
     }
-    if (!this._rendered) this._buildSkeleton();
+    if (this._rendered !== this._lang) this._buildSkeleton();
     this._paint();
   }
 
   _buildSkeleton() {
     const a = this._accent;
+    const t = this._t;
     this.shadowRoot.innerHTML = `
       <style>
         @keyframes floatUp {0%{transform:translateY(6px);opacity:0}100%{transform:translateY(0);opacity:1}}
@@ -216,13 +263,13 @@ class CoalPilotCard extends HTMLElement {
         <div class="hdr">
           <div class="hl">
             <div class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3c1.5 3-1.5 4 0 6.5C13.8 8 15 6.5 14.5 4c2.5 1.8 4 4.6 4 7.5a6.5 6.5 0 1 1-13 0c0-1.6.6-3 1.6-4C7 9 8.4 9.6 9 11c.6-3 1-5 3-8Z" fill="#fff"/></svg></div>
-            <div><div class="title" id="cp-title">Shisha Ofen</div><div class="sub" id="cp-status"></div></div>
+            <div><div class="title" id="cp-title">${t.title}</div><div class="sub" id="cp-status"></div></div>
           </div>
           <div class="pill" id="cp-pill"><span class="dot" id="cp-dot"></span><span class="pilltxt" id="cp-plabel"></span></div>
         </div>
         <div class="seg" id="cp-seg">
-          <button data-mode="auto">Auto-Lernen</button>
-          <button data-mode="fixed">Feste Zeit</button>
+          <button data-mode="auto">${t.tab_auto}</button>
+          <button data-mode="fixed">${t.tab_fixed}</button>
         </div>
         <div class="dial">
           <svg width="236" height="236" viewBox="0 0 236 236" style="transform:rotate(-90deg)">
@@ -234,30 +281,30 @@ class CoalPilotCard extends HTMLElement {
         </div>
         <div class="row" id="cp-stepper" style="display:none">
           <button class="step" id="cp-dec">−</button>
-          <div class="steplbl">feste Zeit</div>
+          <div class="steplbl">${t.fixed_time}</div>
           <button class="step" id="cp-inc">+</button>
         </div>
         <button class="primary" id="cp-primary"></button>
         <div class="fb" id="cp-fb" style="display:none">
-          <div class="fbh">Wie war die Kohle?</div>
-          <div class="fbs">Passt die Zeit fürs nächste Mal an</div>
+          <div class="fbh">${t.fb_title}</div>
+          <div class="fbs">${t.fb_sub}</div>
           <div class="fbg">
-            <button class="fbb" data-v="shorter"><span style="font-size:19px">🥶</span><span style="font-size:11.5px;font-weight:600">Kürzer</span><span style="font-size:10px;color:#7c8290">−30s</span></button>
-            <button class="fbb perf" data-v="perfect"><span style="font-size:19px">🔥</span><span style="font-size:11.5px;font-weight:600">Perfekt</span><span style="font-size:10px;color:#ff9d5c">gemerkt</span></button>
-            <button class="fbb" data-v="longer"><span style="font-size:19px">🥵</span><span style="font-size:11.5px;font-weight:600">Länger</span><span style="font-size:10px;color:#7c8290">+30s</span></button>
+            <button class="fbb" data-v="shorter"><span style="font-size:19px">🥶</span><span style="font-size:11.5px;font-weight:600">${t.fb_shorter}</span><span style="font-size:10px;color:#7c8290">−30s</span></button>
+            <button class="fbb perf" data-v="perfect"><span style="font-size:19px">🔥</span><span style="font-size:11.5px;font-weight:600">${t.fb_perfect}</span><span style="font-size:10px;color:#ff9d5c">${t.fb_saved}</span></button>
+            <button class="fbb" data-v="longer"><span style="font-size:19px">🥵</span><span style="font-size:11.5px;font-weight:600">${t.fb_longer}</span><span style="font-size:10px;color:#7c8290">+30s</span></button>
           </div>
         </div>
         <div class="coalsel" id="cp-coalsel">
-          <div class="lbl mt5" style="margin-bottom:7px">Kohle</div>
+          <div class="lbl mt5" style="margin-bottom:7px">${t.coal}</div>
           <select id="cp-coal"></select>
           <div class="cntrow"><button class="step" id="cp-cdec">−</button><div class="cntval" id="cp-cval"></div><button class="step" id="cp-cinc">+</button></div>
         </div>
         <div class="stats">
-          <div class="stat"><div class="lbl mt5">Gelernte Zeit</div><div class="v1" id="cp-learned">--:--</div></div>
-          <div class="stat"><div class="lbl mt5">Letzte Session</div><div class="v2" id="cp-last">—</div></div>
+          <div class="stat"><div class="lbl mt5">${t.learned}</div><div class="v1" id="cp-learned">--:--</div></div>
+          <div class="stat"><div class="lbl mt5">${t.last}</div><div class="v2" id="cp-last">—</div></div>
         </div>
         <div class="hist" id="cp-hist" style="display:none">
-          <div class="lbl" style="margin-bottom:9px">Verlauf</div>
+          <div class="lbl" style="margin-bottom:9px">${t.history}</div>
           <div id="cp-histlist"></div>
         </div>
       </ha-card>`;
@@ -284,62 +331,49 @@ class CoalPilotCard extends HTMLElement {
       this._paint();
     });
     $("cp-cdec").addEventListener("click", () => {
-      const c = this._curCount();
-      this._sel.count = Math.max(1, c - 1);
+      this._sel.count = Math.max(1, this._curCount() - 1);
       this._paint();
     });
     $("cp-cinc").addEventListener("click", () => {
-      const c = this._curCount();
-      this._sel.count = Math.min(10, c + 1);
+      this._sel.count = Math.min(10, this._curCount() + 1);
       this._paint();
     });
-    this._rendered = true;
-  }
-
-  _curCount() {
-    if (this._sel.count != null) return this._sel.count;
-    const coal = this._coalObj(this._selectedCoal());
-    return coal?.default_count || 1;
+    this._rendered = this._lang;
   }
 
   _paint() {
     const $ = (id) => this.shadowRoot.getElementById(id);
+    const t = this._t;
     const a = this._attrs;
     const phase = a.phase || "idle";
-    const idle = phase === "idle",
-      running = phase === "running",
-      fb = phase === "feedback";
+    const idle = phase === "idle", running = phase === "running", fb = phase === "feedback";
     const mode = this._mode();
 
-    // reset local selections when leaving idle so backend wins
     if (!idle) this._sel = { mode: null, coal: null, count: null, fixed: null };
 
-    $("cp-title").textContent = this._config.title || this._hass.states[this._config.entity]?.attributes?.friendly_name?.replace(/ State$/, "") || "Shisha Ofen";
-    $("cp-status").textContent = mode === "fixed" ? "Feste-Zeit-Modus" : "Lernt deine perfekte Zeit";
+    $("cp-title").textContent = this._config.title || t.title;
+    $("cp-status").textContent = mode === "fixed" ? t.status_fixed : t.status_learn;
 
-    // pill
     const pill = $("cp-pill"), dot = $("cp-dot"), pl = $("cp-plabel");
     if (running) {
       pill.style.background = "rgba(255,87,34,.14)"; pill.style.borderColor = "rgba(255,87,34,.35)";
       dot.style.background = "#ff5722"; dot.style.boxShadow = "0 0 8px #ff5722";
-      pl.style.color = "#ff9d5c"; pl.textContent = "Läuft";
+      pl.style.color = "#ff9d5c"; pl.textContent = t.running;
     } else if (fb) {
       pill.style.background = "rgba(255,157,92,.14)"; pill.style.borderColor = "rgba(255,157,92,.35)";
       dot.style.background = "#ff9d5c"; dot.style.boxShadow = "0 0 8px #ff9d5c";
-      pl.style.color = "#ff9d5c"; pl.textContent = "Fertig";
+      pl.style.color = "#ff9d5c"; pl.textContent = t.done;
     } else {
       pill.style.background = "rgba(124,130,144,.12)"; pill.style.borderColor = "#23272e";
       dot.style.background = "#7c8290"; dot.style.boxShadow = "0 0 8px #7c8290";
-      pl.style.color = "#a7adb8"; pl.textContent = "Bereit";
+      pl.style.color = "#a7adb8"; pl.textContent = t.ready;
     }
 
-    // segmented control
     $("cp-seg").querySelectorAll("button").forEach((b) => {
       b.classList.toggle("on", b.dataset.mode === mode);
       b.style.pointerEvents = idle ? "auto" : "none";
     });
 
-    // dial
     const total = running ? Number(a.total || 0) : this._baseTime();
     const remaining = running ? this._remaining() : fb ? 0 : this._baseTime();
     const R = 104, C = 2 * Math.PI * R;
@@ -349,53 +383,46 @@ class CoalPilotCard extends HTMLElement {
     p.setAttribute("stroke-dasharray", `${C} ${C}`);
     p.setAttribute("stroke-dashoffset", off);
     $("cp-clock").textContent = fmt(remaining);
-    $("cp-dsub").textContent = running ? "verbleibend" : fb ? "abgelaufen" : mode === "fixed" ? "feste Laufzeit" : "geplant";
+    $("cp-dsub").textContent = running ? t.sub_remaining : fb ? t.sub_elapsed : mode === "fixed" ? t.sub_fixed : t.sub_planned;
 
-    // stepper (fixed + idle)
     $("cp-stepper").style.display = idle && mode === "fixed" ? "flex" : "none";
 
-    // primary
     const prim = $("cp-primary");
     prim.style.display = idle || running ? "block" : "none";
-    if (running) {
-      prim.className = "primary stop"; prim.textContent = "Jetzt beenden";
-    } else {
-      prim.className = "primary go"; prim.textContent = "▶  Ofen starten";
-    }
+    if (running) { prim.className = "primary stop"; prim.textContent = t.stop; }
+    else { prim.className = "primary go"; prim.textContent = t.start; }
 
-    // feedback
     $("cp-fb").style.display = fb ? "block" : "none";
 
-    // coal selector (idle + auto)
     const showCoal = idle && mode === "auto";
     $("cp-coalsel").style.display = showCoal ? "block" : "none";
     if (showCoal) {
       const sel = $("cp-coal");
       const coals = a.coal_types || [];
       const cur = this._selectedCoal();
-      if (sel.dataset.sig !== JSON.stringify(coals.map((c) => [c.id, c.name, c.size_mm]))) {
+      const sig = JSON.stringify(coals.map((c) => [c.id, c.name, c.size_mm]));
+      if (sel.dataset.sig !== sig) {
         sel.innerHTML = coals.length
           ? coals.map((c) => `<option value="${c.id}">${c.name} · ${c.size_mm}mm${c.is_default ? " ★" : ""}</option>`).join("")
-          : `<option value="">Keine Kohlearten – erst anlegen</option>`;
-        sel.dataset.sig = JSON.stringify(coals.map((c) => [c.id, c.name, c.size_mm]));
+          : `<option value="">${t.no_coals}</option>`;
+        sel.dataset.sig = sig;
       }
       if (cur) sel.value = cur;
-      $("cp-cval").textContent = `${this._curCount()} Stück`;
+      $("cp-cval").textContent = `${this._curCount()} ${t.pcs}`;
     }
 
-    // stats
     $("cp-learned").textContent = fmt(this._coalObj(this._selectedCoal())?.learned_time ?? a.learned ?? 0);
     $("cp-last").textContent = a.last_session || "—";
 
-    // history
     const hist = a.history || [];
     $("cp-hist").style.display = hist.length ? "block" : "none";
     if (hist.length) {
+      const vl = { perfect: t.v_perfect, shorter: t.v_shorter, longer: t.v_longer };
       $("cp-histlist").innerHTML = hist
         .map(
           (h) => `<div class="hrow"><span style="font-size:15px">${h.icon}</span>
             <span class="htime">${h.time}</span><span class="hcoal">${h.coal}</span>
-            <span class="hverd" style="color:${h.verdict === "perfect" ? "#ff9d5c" : "#7c8290"}">${VERDICT_LABEL[h.verdict] || ""}</span></div>`
+            <span class="hverd" style="color:${h.verdict === "perfect" ? "#ff9d5c" : "#7c8290"}">${vl[h.verdict] || ""}</span></div>`
         )
         .join("");
     }
@@ -410,4 +437,4 @@ window.customCards.push({
   description: "Shisha oven timer that learns your perfect burn time.",
   preview: true,
 });
-console.info("%c COALPILOT-CARD %c v0.1.0 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");
+console.info("%c COALPILOT-CARD %c v0.1.2 ", "background:#ff5722;color:#fff;border-radius:4px 0 0 4px;padding:2px 6px", "background:#0c0e12;color:#ff9d5c;border-radius:0 4px 4px 0;padding:2px 6px");

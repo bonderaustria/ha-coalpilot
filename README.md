@@ -42,15 +42,11 @@ CoalPilot switches your oven (any `switch`, `input_boolean` or `light`) on, runs
 Copy `custom_components/coalpilot` into your Home Assistant `config/custom_components/` folder and restart.
 </details>
 
-### 2. Lovelace card
+### 2. Lovelace card — nothing to install
 
-Copy `www/coalpilot-card.js` into your `config/www/` folder, then add it as a dashboard resource:
+The card ships **inside the integration** and is registered on the frontend automatically. You don't copy any file and you don't add a dashboard resource. After installing the integration and restarting, the `custom:coalpilot-card` is ready to use.
 
-**Settings → Dashboards → ⋮ → Resources → Add resource**
-- URL: `/local/coalpilot-card.js`
-- Type: **JavaScript Module**
-
-*(With HACS you can also add the card as a HACS "Dashboard" custom repository.)*
+> If the card doesn't appear right after the update, hard-refresh your browser once (Ctrl/Cmd+Shift+R) to clear the cached frontend.
 
 ---
 
@@ -72,6 +68,21 @@ entity: sensor.shisha_ofen_state   # the CoalPilot "State" sensor
 # title: Wohnzimmer Ofen
 # accent_color: "#ff5722"
 ```
+
+You can also add it from the dashboard UI: **Edit dashboard → Add card → search "CoalPilot"**.
+
+---
+
+## 🌍 Language / Sprache (DE ⇄ EN)
+
+CoalPilot is fully bilingual — **the config screens, the entities and the card all follow the Home Assistant user language**. There is no separate setting in the integration.
+
+**Switch a user between German and English:**
+1. Click your **profile** (bottom-left avatar in Home Assistant).
+2. Under **Language**, pick **English** or **Deutsch**.
+3. The card and all CoalPilot texts switch immediately (reload the page if a text lags).
+
+The language is **per user**, so each household member sees CoalPilot in their own language. Any language other than German falls back to English.
 
 ---
 
